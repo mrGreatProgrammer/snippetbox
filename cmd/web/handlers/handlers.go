@@ -1,28 +1,52 @@
-package main
+package handlers
 
 import (
 	"fmt"
+	"html/template"
+	"log"
 	"net/http"
 	"strconv"
 )
 
 // Создается функция-обработчик "home", которая записывает байтовый слайс, содержащий
 // Обработик главной страницы.
-func home(w http.ResponseWriter, r *http.Request)  {
-	// Проверяется, если текущий путь URL запроса точно совпадает с шаблоном "/". Если нет, вызывается
-	// функция http.NotFound() для возвращения клиенту ошибку 404.
-	// Выжно, чтобы мы завершили работу обработчика через return. Если мы забудем про "return", то обработчик
-	// продолжит работу и выведет сообщение "Привет из SnippetBox" как ни в чем не бывало.
+func Home(w http.ResponseWriter, r *http.Request)  {
 	if r.URL.Path != "/" {
 		http.NotFound(w, r)
 		return
 	}
 
-	w.Write([]byte("Привет из Snippetbox"))
+	// Инициализируем срез содержащий пути к двум файлам. Обратите внимание, что
+	// файл home-page-tmpl.html должен быть *первим* файлом в срезе.
+	files := []string {
+		"pkg/ui/html/home-page-tmpl.html",
+		"pkg/ui/html/base-layout-tmpl.html",
+		"pkg/ui/html/footer-partial-tmpl.html",
+	}
+
+	// Используем функцию tamplate.ParseFiles() для чтения файла шаблона.
+	// Если возникла ошибка, мы запишем детальное сообщение ошибки и
+	// используя функцию http.Error() мы отправим пользователю
+	// ответ: 500 Internal Server Error (Внутреняя ошибка на сервере)
+	ts, err := template.ParseFiles(files...)
+	if err != nil {
+		log.Println(err.Error())
+		http.Error(w, "Internal Server Error", 500)
+		return
+	}
+
+	// Затем мы используем метод Execute() для записи содержимого
+	// шаблона в тело HTTP ответа. Последний параметр в Execute() представляет
+	// возможность отправки динамических данных в шаблон
+	err = ts.Execute(w, nil)
+	if err != nil {
+		log.Println(err.Error())
+		http.Error(w, "Internal Server Error", 500)
+	}
 }
 
 // Обработчик для отображения сожержимого заметки.
-func showSnippet(w http.ResponseWriter, r *http.Request)  {
+func ShowSnippet(w http.ResponseWriter, r *http.Request)  {
 	// Извлекаем значене параметра id из URL и попытаемся
 	// конвертировать строку в integer используя функцию strconv.Atoi(). Если его нельзя
 	// кновертировать в integer, или значение меньше 1, возвращаем ответ
@@ -41,7 +65,7 @@ func showSnippet(w http.ResponseWriter, r *http.Request)  {
 }
 
 // Обработчик для создания новой заметки.
-func createSnippet(w http.ResponseWriter, r *http.Request)  {
+func CreateSnippet(w http.ResponseWriter, r *http.Request)  {
 	if r.Method != http.MethodPost {
 		// Используем метод Header().Set() для добавления заголовка 'Allow: POST' в
         // карту HTTP-заголовков. Первый параметр - название заголовка, а
@@ -49,7 +73,7 @@ func createSnippet(w http.ResponseWriter, r *http.Request)  {
 		w.Header().Set("Allow", http.MethodPost)
 
         // Используем функцию http.Error() для отправки кода состояния 405 с соответствующим сообщением
-		http.Error(w, "метод запрещен!", 405)
+		http.Error(w, "метод запрещен!", http.StatusMethodNotAllowed)
 
 		// Затем мы завершаем работу функции вызвав "return", чтобы
         // последующий код не выполнялся.
