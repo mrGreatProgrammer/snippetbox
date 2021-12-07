@@ -25,12 +25,19 @@ func main() {
 	infolog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 
+	// Инициализируем новую структуру с зависимотями приложения.
+	app := &handlers.Application{
+		ErrorLog: errorLog,
+		InfoLog: infolog,
+	}
+
 	flag.Parse()
 
+	// Используем методы из структуры в качестве обработчиков маршрутов
 	mux := http.NewServeMux()
-	mux.HandleFunc("/", handlers.Home)
-	mux.HandleFunc("/snippet", handlers.ShowSnippet)
-	mux.HandleFunc("snippet/create", handlers.CreateSnippet)
+	mux.HandleFunc("/", app.Home)
+	mux.HandleFunc("/snippet", app.ShowSnippet)
+	mux.HandleFunc("snippet/create", app.CreateSnippet)
 
 	fileServer := http.FileServer(neuteredFileSystem{http.Dir("ui/static/")})
 	mux.Handle("/static", http.NotFoundHandler())
