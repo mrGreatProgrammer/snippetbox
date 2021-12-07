@@ -13,6 +13,15 @@ import (
 func main() {
 	addr := flag.String("addr", ":4000", "Сетевой адрес HTTP")
 
+	// Логирование сообщений в файл
+	// f, err := os.OpenFile("info.log", os.O_RDWR|os.O_CREATE, 0666)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	// defer f.Close()
+
+	// infoLog := log.New(f, "INFO\t", log.Ldate|log.Ltime)
+
 	infolog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 
