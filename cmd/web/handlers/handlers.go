@@ -20,7 +20,7 @@ type Application struct {
 // Обработик главной страницы.
 func (app *Application) Home(w http.ResponseWriter, r *http.Request)  {
 	if r.URL.Path != "/" {
-		http.NotFound(w, r)
+		app.NotFound(w) // Используем помощника notFound()
 		return
 	}
 
@@ -32,20 +32,13 @@ func (app *Application) Home(w http.ResponseWriter, r *http.Request)  {
 
 	ts, err := template.ParseFiles(files...)
 	if err != nil {
-		// Поскольку обработчик home теперь является методом структуры application
-		// он может получить доступ к логгерам из структуры.
-		// Используем их вместо стандартного логгера от Go.
-		app.ErrorLog.Println(err.Error())
-		http.Error(w, "Internal Server Error", 500)
+		app.ServerError(w, err) // Используем помощника serverError()
 		return
 	}
 
 	err = ts.Execute(w, nil)
 	if err != nil {
-		// Обновляем код для использования логгера-ошибок
-		// из структуры application
-		app.ErrorLog.Println(err.Error())
-		http.Error(w, "Internal Server Error", 500)
+		app.ServerError(w, err) // Используем помощника serverError()
 	}
 }
 
@@ -53,7 +46,7 @@ func (app *Application) Home(w http.ResponseWriter, r *http.Request)  {
 func (app *Application) ShowSnippet(w http.ResponseWriter, r *http.Request)  {
 	id, err := strconv.Atoi(r.URL.Query().Get("id")) 
 	if err != nil || id < 1{
-		http.NotFound(w, r)
+		app.NotFound(w) // Используем помощника notFound()
 		return
 	}
 
@@ -66,7 +59,7 @@ func (app *Application) ShowSnippet(w http.ResponseWriter, r *http.Request)  {
 func (app *Application) CreateSnippet(w http.ResponseWriter, r *http.Request)  {
 	if r.Method != http.MethodPost {
 		w.Header().Set("Allow", http.MethodPost)
-		http.Error(w, "метод запрещен!", http.StatusMethodNotAllowed)
+		app.ClientError(w, http.StatusMethodNotAllowed) // Используем помощника clientError()
 
 		return
 	}
