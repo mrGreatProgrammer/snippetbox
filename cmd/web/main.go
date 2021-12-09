@@ -8,13 +8,13 @@ import (
 	"os"
 
 	"github.com/mrGreatProgrammer/snippetbox/cmd/web/handlers"
-	
+	"github.com/mrGreatProgrammer/snippetbox/pkg/models/mysql"
+
 	_ "github.com/go-sql-driver/mysql"
 )
 
 func main() {
 	addr := flag.String("addr", ":4000", "Сетевой адрес HTTP")
-	// Определение нового флага из командной строки для настройки MySQL подключения
 	dsn := flag.String("dsn", "web:password@/snippetbox?parseTime=true", "Название MySQL источника данных")
 	flag.Parse()
 
@@ -30,21 +30,17 @@ func main() {
 	infolog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 
-	// Чтобы функция main() была более компактной, мы поместили код для создания
-	// пула соединений в отдельную функцию openDB(). Мы передаем в нее полученный
-	// источник данных (DSN) из флага командной строки.
 	db, err := openDB(*dsn)
 	if err != nil {
 		errorLog.Fatal(err)
 	}
-	// Мы также откладываем вызов db.Close(), чтобы пул соединений был закрыт
-	// до выхода из функции main().
-	// Подробнее про defer: https://golangs.org/errors#defer
 	defer db.Close()
 
+	// Инициализируем экземпляр mysql.SnippetModel и добавляем его в зависимостях.
 	app := &handlers.Application{
 		ErrorLog: errorLog,
 		InfoLog: infolog,
+		Snippets: &mysql.SnippetModel{DB: db},
 	}
 
 

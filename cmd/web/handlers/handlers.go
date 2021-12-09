@@ -6,14 +6,16 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+
+	"github.com/mrGreatProgrammer/snippetbox/pkg/models/mysql"
 )
 
-// Создаем структуру `application` для хранения зависимостей всего веб-приложения.
-// Пока, что мы добавим поля только для двух логгеров, но
-// мы будем расширать данную структуру по мере усложнения приложения.
+// Добавляемм поле snippets в структуру application. Это позволит
+// сделать объект SnippetModel доступным для наших обработчиков.
 type Application struct {
 	ErrorLog *log.Logger
 	InfoLog *log.Logger
+	Snippets *mysql.SnippetModel
 }
 
 // Создается функция-обработчик "home", которая записывает байтовый слайс, содержащий
