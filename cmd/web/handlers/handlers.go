@@ -65,5 +65,21 @@ func (app *Application) CreateSnippet(w http.ResponseWriter, r *http.Request)  {
 
 		return
 	}
-	w.Write([]byte("Форма для создания новой заметки..."))
+
+	// Создаем несколько переменных, содержащих тестовые данные. Мы удалим их позже.
+	title := "История про улитку"
+	content := "Улитка выползла из раковины, \nвытянула рожки, \nи опять подобрала их."
+	expires := "7"
+
+	// Передаем данные в метод SnippetModel.Insert(), получая обратно
+	// ID только что созданной записи в базу данных.
+	id, err := app.Snippets.Insert(title, content, expires)
+	if err != nil {
+		app.ServerError(w, err)
+		return
+	}
+
+	// Перенаправляем пользователя на соответствующую страницу заметки
+
+	http.Redirect(w, r, fmt.Sprintf("/snippet?id=%d", id), http.StatusSeeOther)
 }
