@@ -1,12 +1,14 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"html/template"
 	"log"
 	"net/http"
 	"strconv"
 
+	"github.com/mrGreatProgrammer/snippetbox/pkg/models"
 	"github.com/mrGreatProgrammer/snippetbox/pkg/models/mysql"
 )
 
@@ -52,7 +54,21 @@ func (app *Application) ShowSnippet(w http.ResponseWriter, r *http.Request)  {
 		return
 	}
 
-	fmt.Fprintf(w, "Отображение выбранной заметки с ID %d ...", id)
+	// Вызываем метода Get из модели Snipping для извелечения данных для
+	// конкретной записи на основе её ID. Если подходящей записи не найдено, 
+	// то возвращается ответ 404 Not Found (Страница не найдена).
+	s, err := app.Snippets.Get(id)
+	if err != nil {
+		if errors.Is(err, models.ErrNoRecord) {
+			app.NotFound(w)
+		} else {
+			app.ServerError(w, err)
+		}
+		return
+	}
+	
+	// Отображаем весь вывод на странице.
+	fmt.Fprintf(w, "Отображение выбранной заметки с ID %v ...", s)
 
 	// w.Write([]byte("Отображение заметки..."))
 }
