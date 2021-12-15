@@ -3,7 +3,7 @@ package handlers
 import (
 	"errors"
 	"fmt"
-	"html/template"
+	// "html/template"
 	"log"
 	"net/http"
 	"strconv"
@@ -28,22 +28,32 @@ func (app *Application) Home(w http.ResponseWriter, r *http.Request)  {
 		return
 	}
 
-	files := []string {
-		"ui/html/home-page-tmpl.html",
-		"ui/html/base-layout-tmpl.html",
-		"ui/html/footer-partial-tmpl.html",
-	}
-
-	ts, err := template.ParseFiles(files...)
+	s, err := app.Snippets.Latest()
 	if err != nil {
-		app.ServerError(w, err) // Используем помощника serverError()
+		app.ServerError(w, err)
 		return
 	}
 
-	err = ts.Execute(w, nil)
-	if err != nil {
-		app.ServerError(w, err) // Используем помощника serverError()
+	for _, snippet := range s {
+		fmt.Fprintf(w, "%v\n", snippet)
 	}
+
+	// files := []string {
+	// 	"ui/html/home-page-tmpl.html",
+	// 	"ui/html/base-layout-tmpl.html",
+	// 	"ui/html/footer-partial-tmpl.html",
+	// }
+
+	// ts, err := template.ParseFiles(files...)
+	// if err != nil {
+	// 	app.ServerError(w, err) // Используем помощника serverError()
+	// 	return
+	// }
+
+	// err = ts.Execute(w, nil)
+	// if err != nil {
+	// 	app.ServerError(w, err) // Используем помощника serverError()
+	// }
 }
 
 // Обработчик для отображения сожержимого заметки.
