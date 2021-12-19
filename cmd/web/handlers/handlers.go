@@ -77,8 +77,9 @@ func (app *Application) ShowSnippet(w http.ResponseWriter, r *http.Request)  {
 		return
 	}
 	
-	// Инициализируем срез, содержащий путь к файлу show.page.tmpl.html
-	// Добавив еще базовый шаблон и часть футера, который мы сделали ранее.
+	// Создаем экхемпляр структуры templateData, содержащий данные заметки.
+	data := &templateData{Snippet: s}
+	
 	files := []string{
 		"ui/html/show-page-tmpl.html",
 		"ui/html/base-layout-tmpl.html",
@@ -92,9 +93,8 @@ func (app *Application) ShowSnippet(w http.ResponseWriter, r *http.Request)  {
 		return
 	}
 
-	// А затем выполняем их. Обратите внимание на передачу заметки с данными
-	// (структура models.Snippet) в качестве последнего параметра.
-	err = ts.Execute(w, s)
+	// Передаем структуру templateData в качестве данных для шаблона.
+	err = ts.Execute(w, data)
 	if err != nil {
 		app.ServerError(w, err)
 	}
