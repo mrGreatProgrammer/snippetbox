@@ -3,6 +3,8 @@ package handlers
 import (
 	"errors"
 	"fmt"
+	"html/template"
+
 	// "html/template"
 	"log"
 	"net/http"
@@ -60,13 +62,11 @@ func (app *Application) Home(w http.ResponseWriter, r *http.Request)  {
 func (app *Application) ShowSnippet(w http.ResponseWriter, r *http.Request)  {
 	id, err := strconv.Atoi(r.URL.Query().Get("id")) 
 	if err != nil || id < 1{
-		app.NotFound(w) // Используем помощника notFound()
+		app.NotFound(w)
 		return
 	}
 
-	// Вызываем метода Get из модели Snipping для извелечения данных для
-	// конкретной записи на основе её ID. Если подходящей записи не найдено, 
-	// то возвращается ответ 404 Not Found (Страница не найдена).
+
 	s, err := app.Snippets.Get(id)
 	if err != nil {
 		if errors.Is(err, models.ErrNoRecord) {
@@ -77,10 +77,27 @@ func (app *Application) ShowSnippet(w http.ResponseWriter, r *http.Request)  {
 		return
 	}
 	
-	// Отображаем весь вывод на странице.
-	fmt.Fprintf(w, "Отображение выбранной заметки с ID %v ...", s)
+	// Инициализируем срез, содержащий путь к файлу show.page.tmpl.html
+	// Добавив еще базовый шаблон и часть футера, который мы сделали ранее.
+	files := []string{
+		"ui/html/show-page-tmpl.html",
+		"ui/html/base-layout-tmpl.html",
+		"ui/html/footer-partial-tmpl.html",
+	}
 
-	// w.Write([]byte("Отображение заметки..."))
+	// Парсинг файлов шаблона...
+	ts, err := template.ParseFiles(files...)
+	if err != nil {
+		app.ServerError(w, err)
+		return
+	}
+
+	// А затем выполняем их. Обратите внимание на передачу заметки с данными
+	// (структура models.Snippet) в качестве последнего параметра.
+	err = ts.Execute(w, s)
+	if err != nil {
+		app.ServerError(w, err)
+	}
 }
 
 // Обработчик для создания новой заметки.
