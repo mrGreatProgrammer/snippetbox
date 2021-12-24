@@ -36,26 +36,32 @@ func (app *Application) Home(w http.ResponseWriter, r *http.Request)  {
 		return
 	}
 
-	for _, snippet := range s {
-		fmt.Fprintf(w, "%v\n", snippet)
+	// for _, snippet := range s {
+	// 	fmt.Fprintf(w, "%v\n", snippet)
+	// }
+
+	// создаем экземпляр структуры templateData,
+	// содержащий срез с заметки.
+	data := &templateData{Snippets: s}
+
+	files := []string {
+		"ui/html/home-page-tmpl.html",
+		"ui/html/base-layout-tmpl.html",
+		"ui/html/footer-partial-tmpl.html",
 	}
 
-	// files := []string {
-	// 	"ui/html/home-page-tmpl.html",
-	// 	"ui/html/base-layout-tmpl.html",
-	// 	"ui/html/footer-partial-tmpl.html",
-	// }
+	ts, err := template.ParseFiles(files...)
+	if err != nil {
+		app.ServerError(w, err) // Используем помощника serverError()
+		return
+	}
 
-	// ts, err := template.ParseFiles(files...)
-	// if err != nil {
-	// 	app.ServerError(w, err) // Используем помощника serverError()
-	// 	return
-	// }
-
-	// err = ts.Execute(w, nil)
-	// if err != nil {
-	// 	app.ServerError(w, err) // Используем помощника serverError()
-	// }
+	// Передаем структуру templateData в шаблонизатор.
+	// Теперь она будет доступна внутри файлов шаблона через точку.
+	err = ts.Execute(w, data)
+	if err != nil {
+		app.ServerError(w, err) // Используем помощника serverError()
+	}
 }
 
 // Обработчик для отображения сожержимого заметки.

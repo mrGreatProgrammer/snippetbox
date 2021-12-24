@@ -8,4 +8,5 @@ import "github.com/mrGreatProgrammer/snippetbox/pkg/models"
 // по мере развития нашего приложения.
 type templateData struct {
 	Snippet *models.Snippet
+	Snippets []*models.Snippet
 }
