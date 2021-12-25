@@ -36,14 +36,20 @@ func main() {
 	}
 	defer db.Close()
 
-	// Инициализируем экземпляр mysql.SnippetModel и добавляем его в зависимостях.
+	// Инициализируем новый кэш шаблона...
+	templateCache, err := handlers.NewTemplateCache("./ui/html/")
+	if err != nil {
+		errorLog.Fatal(err)
+	}
+
+	// И добавляем его в зависимостях нашего
+	// веб-приложения.
 	app := &handlers.Application{
 		ErrorLog: errorLog,
 		InfoLog: infolog,
 		Snippets: &mysql.SnippetModel{DB: db},
+		TemplateCache: templateCache,
 	}
-
-
 
 	srv := &http.Server{
 		Addr: *addr,
@@ -51,10 +57,7 @@ func main() {
 		Handler: app.Routes(),
 	}
 
-	infolog.Printf("Запуск сервера на %s\n", *addr)
-	// Поскольку переменная `err` уже объявлена в приведенном выше коде, нужно
-	// использовать оператор присваивания =
-	// вместо оператора := (объявить и присвоить)
+	infolog.Printf("Запуск сервера на localhost%s\n", *addr)
 	err = srv.ListenAndServe()
 	errorLog.Fatal(err)
 }
